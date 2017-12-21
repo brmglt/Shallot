@@ -19,11 +19,22 @@
 #include "globals.h"
 
 #include <string.h>
+#include <limits.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/stat.h>
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
 
+void redirect_output(char* subdir, char *fname)
+{
+			char file[PATH_MAX];
+			snprintf(file, PATH_MAX, "%s/%s/%s", output_dir, subdir, fname);
+			if (
+					(freopen(file, "w", stdout) == NULL) ||
+					(freopen(file, "w", stderr) == NULL)
+			   ) error(X_FILE_OPEN_ERR);
+}
 void *worker(void *params) { // life cycle of a cracking pthread
   uint64_t e_be; // storage for our "big-endian" version of e
   uint8_t buf[SHA1_DIGEST_LEN],
@@ -71,23 +82,63 @@ void *worker(void *params) { // life cycle of a cracking pthread
       base32_onion(onion, buf); // base32-encode SHA1 digest
       loop++;                   // keep track of our tries...
 
-      if(!regexec(regex, onion, 0, 0, 0)) { // check for a match
+      while(!regexec(regex, onion, 0, 0, 0)) { // check for a match
+        if(!BN_bin2bn(e_ptr, e_bytes, rsa->e)) // store our e in the actual key
+		{
+          error(X_BIGNUM_FAILED);              // and make sure it got there
+		  break;
+		}
 
-        // let our main thread know on which thread to wait
-        lucky_thread = pthread_self();
-        found = 1; // kill off our other threads, asynchronously
+        if(!sane_key(rsa))        // check our key
+		{
+          error(X_YOURE_UNLUCKY); // bad key :(
+		  break;
+		}
 
         if(monitor)
           printf("\n"); // keep our printing pretty!
 
-        if(!BN_bin2bn(e_ptr, e_bytes, rsa->e)) // store our e in the actual key
-          error(X_BIGNUM_FAILED);              // and make sure it got there
 
-        if(!sane_key(rsa))        // check our key
-          error(X_YOURE_UNLUCKY); // bad key :(
+		char onion_dir[PATH_MAX];
+		snprintf(onion_dir, PATH_MAX, "%s/%s", output_dir, onion);
+		mkdir(onion_dir, S_IRWXU);
+        FILE *out_file=stdout;
+        char fname[PATH_MAX];
+		if(create_dir)
+		{
+			//redirect_output(onion, "hostname");
+			snprintf(fname, PATH_MAX, "%s/%s/%s", output_dir, onion, "hostname");
+            out_file = fopen(fname, "w");
+            fprintf(out_file, "%s.onion", onion);
+        }
+        print_onion(stdout, onion); // print our domain
+        fflush(out_file);
+        if(out_file != stdout) 
+        {
+            fclose(out_file);
+        }
+        out_file = stdout;
+		if(create_dir)
+		{
+			//redirect_output(onion, "private_key");
+			snprintf(fname, PATH_MAX, "%s/%s/%s", output_dir, onion, "private_key");
+            out_file = fopen(fname, "w");
+		}
+        print_prkey(out_file, rsa);   // and more importantly the key
+        fflush(out_file);
+        if(out_file != stdout) 
+        {
+            fclose(out_file);
+        }
+		if(dontstop)
+		{
+          printf("\n"); // keep our printing pretty!
+		  break;
+		}
+        // let our main thread know on which thread to wait
+        lucky_thread = pthread_self();
+        found = 1; // kill off our other threads, asynchronously
 
-        print_onion(onion); // print our domain
-        print_prkey(rsa);   // and more importantly the key
 
         RSA_free(rsa); // free up what's left
 

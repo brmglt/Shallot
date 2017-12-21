@@ -4,7 +4,7 @@
 #include <openssl/rsa.h>
 
 void base32_onion(char *dst, unsigned char *src);
-void print_onion(char *onion);
-void print_prkey(RSA *rsa);
+void print_onion(FILE * stream, char *onion);
+void print_prkey(FILE * stream, RSA *rsa);
 
 #endif

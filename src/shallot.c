@@ -73,6 +73,9 @@ int main(int argc, char *argv[]) { // onions are fun, here we go
   loop = 0;
   found = 0;
   monitor = 0;
+  dontstop = 0;
+  create_dir = 0;
+  output_dir = "/var/lib/tor";
 
   #ifdef BSD                                   // my
   int mib[2] = { CTL_HW, HW_NCPU };            // how
@@ -134,8 +137,8 @@ int main(int argc, char *argv[]) { // onions are fun, here we go
   }
 
   for(; x < argc - 1; x++) { // options parsing
-    if(argv[x][0] != '-') {
-      fprintf(stderr, "Error: Options must start with '-'\n");
+    if(argv[x][0] != '-' && !(x && argv[x-1][0] == '-' && argv[x-1][1] == 'D') ) {
+      fprintf(stderr, "Error: Options must start with '-', prev option %s\n", argv[x-1]);
       usage();
     }
     uint32_t y = 1;
@@ -148,6 +151,10 @@ int main(int argc, char *argv[]) { // onions are fun, here we go
         }
         case 'm': { // monitor
           monitor = 1;
+          break;
+        }
+        case 's': { // don't stop after domain is found
+          dontstop = 1;
           break;
         }
         case 'o': { // prime optimization
@@ -191,6 +198,20 @@ int main(int argc, char *argv[]) { // onions are fun, here we go
           dbreak = 1;
           break;
         }
+		case 'c': {
+					  create_dir = 1;
+					  break;
+		}
+		case 'D': {
+          if((x + 1 > argc)||(argv[x][y + 1] != '\0')) {
+            fprintf(stderr, "Error: -D format is -D directory");
+            usage();
+          }
+		  output_dir = argv[x + 1];
+          dbreak = 1;
+		  break;
+				  
+		}
         default: { // unrecognized
           fprintf(stderr, "Error: Unrecognized option - '%c'\n", argv[x][y]);
           usage();

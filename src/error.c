@@ -10,14 +10,17 @@
 // help - how to use this stuff
 void usage(void) {
   printf("Usage: shallot [-dmopv] [-f <file>] [-t count] [-x time] [-e limit] pattern\n"
-         "  -d        : Daemonize (requires -f)\n"
-         "  -m        : Monitor mode (incompatible with -f)\n"
-	 "  -o        : Optimize RSA key size to improve SHA-1 hashing speed\n"
-         "  -p        : Print 'pattern' help and exit\n"
-         "  -f <file> : Write output to <file>\n"
-         "  -t count  : Forces exactly count threads to be spawned\n"
-         "  -x secs   : Sets a limit on the maximum execution time. Has no effect without -m\n"
-         "  -e limit  : Manually define the limit for e\n"
+         "  -d            : Daemonize (requires -f)\n"
+         "  -m            : Monitor mode (incompatible with -f)\n"
+         "  -o            : Optimize RSA key size to improve SHA-1 hashing speed\n"
+         "  -p            : Print 'pattern' help and exit\n"
+         "  -s            : Don't stop after domain is found\n"
+         "  -c            : Write private_key and hostname to HiddenServiceDir\n"
+         "  -f <file>     : Write output to <file>\n"
+         "  -t count      : Forces exactly count threads to be spawned\n"
+         "  -x secs       : Sets a limit on the maximum execution time. Has no effect without -m\n"
+         "  -e limit      : Manually define the limit for e\n"
+         "  -D directory  : Directory to create HiddenServiceDir in\n"
          "Version: %s\n", VERSION);
   exit(X_WRONG_NUMARGS);
 }

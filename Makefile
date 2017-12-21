@@ -16,6 +16,7 @@ endif
 
 
 CFLAGS:=$(CFLAGS) -O3 -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib
+#CFLAGS:=$(CFLAGS) -g -I/usr/include -I/usr/local/include -L/usr/lib -L/usr/local/lib
 LIBS:=-lm -lpthread -lssl -lcrypto
 WARNING_FLAGS:=$(WARNING_FLAGS) -Wall
 DEBUG_FLAGS:=$(DEBUG_FLAGS) -g

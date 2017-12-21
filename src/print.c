@@ -38,7 +38,7 @@ void base32_onion(char *dst, unsigned char *src) { // base32-encode hash
   dst[byte] = '\0';
 }
 
-void print_onion(char *onion) { // pretty-print hash
+void print_onion(FILE * stream, char *onion) { // pretty-print hash
   uint8_t i;
   char *s;
   #ifdef GENERIC
@@ -49,15 +49,15 @@ void print_onion(char *onion) { // pretty-print hash
 		error(X_OUT_OF_MEMORY);
   #endif
   for(i=0; i<strlen(s); i++)
-    printf("-"); // TODO: use fputc()?
-  printf("\n%s\n", s);
+    fprintf(stream, "-"); // TODO: use fputc()?
+  fprintf(stream, "\n%s\n", s);
   for(i=0; i<strlen(s); i++)
-    printf("-"); // TODO: use fputc()?
-  printf("\n");
+    fprintf(stream, "-"); // TODO: use fputc()?
+  fprintf(stream, "\n");
   free(s);
 }
 
-void print_prkey(RSA *rsa) { // print PEM formatted RSA key
+void print_prkey(FILE * stream, RSA *rsa) { // print PEM formatted RSA key
   BUF_MEM *buf;
   BIO *b = BIO_new(BIO_s_mem());
   PEM_write_bio_RSAPrivateKey(b, rsa, NULL, NULL, 0, NULL, NULL);
@@ -67,7 +67,7 @@ void print_prkey(RSA *rsa) { // print PEM formatted RSA key
   char *dst = malloc(buf->length+1);
   strncpy(dst, buf->data, buf->length);
   dst[buf->length] = '\0';
-  printf("%s", dst);
+  fprintf(stream, "%s", dst);
   BUF_MEM_free(buf);
 }
 
